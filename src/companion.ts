@@ -8,6 +8,7 @@ import { writeFileSync, readFileSync, existsSync } from 'fs';
 import { isCodeforcesUrl, randomId } from './utils';
 import {
     getDefaultLangPref,
+    getHeaderPref,
     getLanguageId,
     useShortCodeForcesName,
     getMenuChoices,
@@ -159,6 +160,8 @@ const handleNewProblem = async (problem: Problem) => {
         return;
     }
     const defaultLanguage = getDefaultLangPref();
+    const isHeaderComments = getHeaderPref();
+
     let extn: string;
     let commentString; // to store the comment string for the header cpp // java // python # c // rust //
 
@@ -192,7 +195,6 @@ const handleNewProblem = async (problem: Problem) => {
     }
     const problemFileName = getProblemFileName(problem, extn);
     const srcPath = path.join(folder, problemFileName);
-    
     // Add fields absent in competitive companion.
     problem.srcPath = srcPath;
     problem.tests = problem.tests.map((testcase) => ({
@@ -204,14 +206,14 @@ const handleNewProblem = async (problem: Problem) => {
     }
     saveProblem(srcPath, problem);
     const doc = await vscode.workspace.openTextDocument(srcPath);
-    
-    if( extn =='py'){
-        commentString="#";
-    }
-    else {
-        commentString="//";
-    }
-    let headerString = `${commentString} Problem : ${problem.name}
+
+    if (isHeaderComments) {
+        if (extn == 'py') {
+            commentString = '#';
+        } else {
+            commentString = '//';
+        }
+        const headerString = `${commentString} Problem : ${problem.name}
 ${commentString} url : ${problem.url}
 ${commentString} Group : ${problem.group}
 ${commentString} Memory Limit : ${problem.memoryLimit}
@@ -219,7 +221,8 @@ ${commentString} Time Limit : ${problem.timeLimit}
 
 `;
 
-    writeFileSync(srcPath,headerString); // inserts the header for both cases ( if template/ default language exists or does not exists ) 
+        writeFileSync(srcPath, headerString); // inserts the header for both cases ( if template/ default language exists or does not exists )
+    }
     if (defaultLanguage) {
         const templateLocation = getDefaultLanguageTemplateFileLocation();
         if (templateLocation !== null) {
@@ -232,7 +235,11 @@ ${commentString} Time Limit : ${problem.timeLimit}
                 const templateContents = readFileSync(
                     templateLocation,
                 ).toString();
-                writeFileSync(srcPath, templateContents,{flag:"a+"}); 
+                writeFileSync(
+                    srcPath,
+                    templateContents,
+                    isHeaderComments ? { flag: 'a+' } : {},
+                );
             }
         }
     }

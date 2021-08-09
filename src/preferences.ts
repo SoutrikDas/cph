@@ -54,6 +54,8 @@ export const getDefaultLangPref = (): string | null => {
     return pref;
 };
 
+export const getHeaderPref = (): boolean => getPreference(`general.headerPref`);
+
 export const useShortCodeForcesName = (): boolean => {
     return getPreference('general.useShortCodeForcesName');
 };

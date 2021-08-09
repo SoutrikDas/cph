@@ -2,6 +2,7 @@
 export type prefSection =
     | 'general.saveLocation'
     | 'general.defaultLanguage'
+    | 'general.headerPref'
     | 'general.timeOut'
     | 'general.firstTime'
     | 'general.useShortCodeForcesName'
