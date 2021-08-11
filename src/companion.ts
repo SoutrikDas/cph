@@ -18,6 +18,8 @@ import { getProblemName } from './submit';
 import { spawn } from 'child_process';
 import { getJudgeViewProvider } from './extension';
 
+const { exec } = require('child_process');
+
 const emptyResponse: CphEmptyResponse = { empty: true };
 let savedResponse: CphEmptyResponse | CphSubmitResponse = emptyResponse;
 const COMPANION_LOGGING = false;
@@ -87,6 +89,26 @@ export const storeSubmitProblem = (problem: Problem) => {
     };
 
     console.log('Stored savedResponse', savedResponse);
+    console.log(
+        `srcPath=${srcPath}, problemName=${problemName}, url=${problem.url}`,
+    );
+    // command to submit with cftool cf submit -f ${srcPath} ${problemName}
+    exec(
+        `cf submit -f ${srcPath} ${problemName}`,
+        (err: string, stdout: string, stderr: string) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            if (stderr) {
+                console.log(stderr);
+            }
+            console.log(`Output: ${stdout}`); //if there is no error
+            getJudgeViewProvider().extensionToJudgeViewMessage({
+                command: 'submit-finished',
+            });
+        },
+    );
 };
 
 export const setupCompanionServer = () => {
